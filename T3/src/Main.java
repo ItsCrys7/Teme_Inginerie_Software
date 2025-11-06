@@ -7,7 +7,7 @@ public class Main {
 
         DataSource ds = new EncryptionDecorator(new CompressDecorator(storage));
 
-        ds.Write("Hello");
+        ds.Write("Hello There World!");
         System.out.println("--- The data has been written to " + fileName + " ---");
 
         String read = ds.Read();

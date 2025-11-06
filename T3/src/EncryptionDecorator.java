@@ -1,26 +1,41 @@
-public class EncryptionDecorator extends BaseDataSourceDecorator{
+public class EncryptionDecorator extends BaseDataSourceDecorator {
 
     private static final String PREFIX = "encrypted: ";
 
-    public EncryptionDecorator(DataSource wrappee)
-    {
+    public EncryptionDecorator(DataSource wrappee) {
         super(wrappee); // functia care impacheteaza
+    }
+
+    private String reverse(String data) {
+        return new StringBuilder(data).reverse().toString(); // inversare a sirului de caractere
     }
 
     @Override
     public void Write(String data) {
-        System.out.println("Encrypt: " + data);
-        _wrappee.Write(PREFIX + data);
+        String reversedData = reverse(data);
+
+        System.out.println("Reverse encription: " + reversedData);
+
+        System.out.println("Reverse result: " + reversedData);
+
+        _wrappee.Write(reversedData);
     }
 
     @Override
     public String Read() {
-        System.out.println("Decrypt: ");
-        String data = _wrappee.Read();
-        if (data == null) return null;
-        if (data.startsWith(PREFIX)) {
-            return data.substring(PREFIX.length());
-        }
-        return data;
+
+        System.out.println("Decrypt reverse: ");
+
+        String reversedData = _wrappee.Read();
+
+        if (reversedData == null || reversedData.isEmpty())
+            return reversedData;
+        System.out.println("Data reversed decrypted: ");
+
+        System.out.println("Received data: " + reversedData);
+
+        String originalData = reverse(reversedData);
+
+        return originalData;
     }
 }
