@@ -6,7 +6,7 @@ public class CompressDecorator extends BaseDataSourceDecorator{
 
     @Override
     public void Write(String data) {
-        System.out.println("Se comprima: " + data);
+        System.out.println("Compress: " + data);
         _wrappee.Write("Compress:" + data);
     }
 
@@ -16,10 +16,10 @@ public class CompressDecorator extends BaseDataSourceDecorator{
         if (data == null) return null;
         if (data.startsWith("Compress:")) {
             String uncompressed = data.substring("Compress:".length());
-            System.out.println("Se decomprima: " + uncompressed);
+            System.out.println("Decompress: " + uncompressed);
             return uncompressed;
         }
-        System.out.println("Se decomprima: " + data);
+        System.out.println("Decompress: " + data);
         return data;
     }
 }

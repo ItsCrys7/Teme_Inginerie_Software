@@ -1,12 +1,18 @@
 public class Main {
     public static void main(String[] args) {
-        // ordinea: EncryptionDecorator (extern) -> CompressDecorator -> StorageDataSource
-        // la Write: Se cripteaza -> Se comprima -> Se salveaza
-        // la Read: Se decripteaza -> Se decomprima -> (se returneaza textul original)
-        DataSource ds = new EncryptionDecorator(new CompressDecorator(new StorageDataSource()));
+        
+        String fileName = "my_data.txt";
+
+        DataSource storage = new StorageDataSource(fileName);
+
+        DataSource ds = new EncryptionDecorator(new CompressDecorator(storage));
 
         ds.Write("Hello");
+        System.out.println("--- The data has been written to " + fileName + " ---");
+
         String read = ds.Read();
-        System.out.println("Rezultat final: " + read);
+
+        System.out.println("--- The data has been read and processed ---");
+        System.out.println("Final result: " + read); 
     }
 }

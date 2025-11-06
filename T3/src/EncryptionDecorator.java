@@ -9,13 +9,13 @@ public class EncryptionDecorator extends BaseDataSourceDecorator{
 
     @Override
     public void Write(String data) {
-        System.out.println("Se cripteaza: " + data);
+        System.out.println("Encrypt: " + data);
         _wrappee.Write(PREFIX + data);
     }
 
     @Override
     public String Read() {
-        System.out.println("Se decripteaza");
+        System.out.println("Decrypt: ");
         String data = _wrappee.Read();
         if (data == null) return null;
         if (data.startsWith(PREFIX)) {
