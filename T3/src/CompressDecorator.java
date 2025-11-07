@@ -5,7 +5,9 @@ public class CompressDecorator extends BaseDataSourceDecorator{
     }
 
     @Override
-    public void Write(String data) {
+// e imp sa nu umplem Metoda Write cu logica de compresie sau cu o functie, 
+//ci e mai bine sa o facem in alta parte, iar in Write doar sa apelam acea functie
+    public void Write(String data) { 
         System.out.println("Compress: " + data);
         _wrappee.Write("Compress:" + data);
     }
