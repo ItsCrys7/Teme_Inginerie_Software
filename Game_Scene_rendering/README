@@ -1,0 +1,104 @@
+Descrierea Proiectului
+Sistemul gestionează o tablă de joc (board) cu dimensiuni definite, pe care există două tipuri principale de entități:
+
+Obstacole Statice: Case și clădiri. 
+Acestea sunt create la începutul jocului și au o poziție și mărime fixe. Materialul și aspectul lor (ex: "beton", "bambus", "lout") sunt dictate de "scena" aleasă.
+
+Entități Mobile: Personaje (oameni) cu atribute specifice (vârstă, mărime, abilități). Acestea pot fi mutate individual sau grupate în formațiuni mai mari (grupuri, armate, legiuni).
+
+Provocarea centrală este logica de mișcare și validare. Orice comandă de mișcare este validată pentru a preveni suprapunerile (coliziunile). Un personaj sau un grup nu se poate deplasa pe o locație deja ocupată de o clădire (așa cum este ilustrat în imaginea primita).
+
+La orice moment, o metodă .render() poate fi apelată pentru a afișa în consolă starea curentă a tuturor obiectelor, demonstrând că regulile de poziționare sunt respectate.
+
+Arhitectura și Design Patterns Folosite :
+Modul în care jocul se "desfășoară" este dictat de interacțiunea dintre aceste pattern-uri:
+
+1. Composite (Compozit)
+Pentru a trata obiectele simple (un Character) și obiectele compuse (un Group) în mod uniform.
+
+Desfășurare :
+Atât Character (o "frunză"), cât și Group (un "compozit") implementează aceeași interfață: IGameObject.
+
+Ambele au metodele .render(), .moveTo(), .getPosition(), .getSize().
+
+Când apelăm .render() pe un Group, acesta pur și simplu iterează prin toți copiii săi (alte Group-uri sau Character-e) și le cere și lor să execute .render().
+
+Când apelăm .moveTo() pe un Group, acesta calculează delta mișcării și dă comanda .moveTo() fiecărui copil.
+
+2. Abstract Factory (Fabrica Abstractă)
+De ce: Pentru a crea "familii" de obiecte specifice unei scene (European, Asian, African).
+
+Cum se desfășoară:
+
+La pornirea jocului, utilizatorul alege sceneType (ex: "Asian").
+
+Motorul de joc instanțiază fabrica corespunzătoare: new AsianSceneFactory().
+
+Când trebuie să populeze harta, motorul nu zice new BambooHouse(). În schimb, cere fabricii: factory.createHouse().
+
+Fabrica "Asiatică" returnează o BambooHouse, în timp ce o EuropeanSceneFactory ar fi returnat o ConcreteHouse. Motorul rămâne independent de produsele concrete.
+
+3. Builder
+De ce: Pentru a construi un Character complex, cu multe atribute (nume, vârstă, mărime, abilități), într-un mod curat și lizibil.
+
+Cum se desfășoară:
+
+În loc de un constructor uriaș: new Character("Bob", 30, 0, 0, 5, 5, "Walk", ...)
+
+Folosim: Character bob = new CharacterBuilder().withName("Bob").withAge(30).withInitialPosition(0,0).withSize(5,5).build();
+
+Acest lucru face crearea de personaje (în codul "hard-coded") mult mai ușor de citit și de întreținut.
+
+4. Singleton
+De ce: Pentru a asigura o singură instanță globală a motorului de joc, care ține "starea lumii".
+
+Cum se desfășoară:
+
+Clasa GameEngine are un constructor privat.
+
+Oricine are nevoie să știe ce se află pe hartă (de exemplu, o comandă de mișcare) nu creează un motor nou.
+
+În schimb, întreabă: GameEngine engine = GameEngine.getInstance();.
+
+Acest engine conține lista tuturor obiectelor (List<IGameObject>), dimensiunea tablei și logica de validare a coliziunilor.
+
+5. Command (Comandă)
+De ce: Pentru a transforma o cerere de acțiune (ex. "mută-te la X,Y") într-un obiect, permițând validarea înainte de execuție.
+
+Cum se desfășoară:
+
+Utilizatorul vrea să mute human2 peste house1.
+
+În loc să apeleze direct human2.moveTo(50, 50), codul creează un obiect-comandă: ICommand move = new MoveCommand(human2, new Position(50, 50));
+
+Apoi execută comanda: move.execute();.
+
+În interiorul lui execute(), comanda mai întâi întreabă GameEngine.getInstance(): "Este această mișcare validă? Se suprapune human2 cu vreo casă la (50,50)?"
+
+GameEngine-ul (Singleton) verifică lista sa de case și vede coliziunea cu house1. Returnează false.
+
+Comanda execute() primește răspunsul false și, în loc să execute mișcarea, afișează mesajul de validare: "Operation cannot be executed." (exact ca în imaginea game plan.png).
+
+6. Decorator
+De ce: Pentru a adăuga abilități (abilities) unui personaj în mod dinamic (la runtime).
+
+Cum se desfășoară:
+
+Avem un Character de bază (creat cu Builder).
+
+Vrem ca acesta să aibă o sabie. În loc să creăm o sub-clasă CharacterWithSword, îl "decorăm": myChar = new SwordDecorator(myChar);
+
+Vrem să poarte și cizme de viteză: myChar = new SpeedBootsDecorator(myChar);
+
+Acum, când apelăm myChar.getSpeed(), decoratorul SpeedBoots va returna viteza de bază * 2. Când apelăm myChar.getAbilities(), decoratorul Sword va adăuga "Sword" la lista de abilități.
+
+7. Factory Method (Metoda Fabrică)
+De ce: Pentru a simplifica crearea diferitelor tipuri de personaje (Human, Elf).
+
+Cum se desfășoară:
+
+În loc ca Builder-ul să știe cum să construiască un Human vs Elf (care pot avea logică de bază diferită), putem avea o clasă CharacterFactory.
+
+Apelăm: ICharacter human = CharacterFactory.createCharacter("human", "Bob");
+
+Metoda createCharacter conține if/else sau switch-ul care decide ce clasă concretă să instanțieze (new Human("Bob") sau new Elf("Bob")), ascunzând această logică de restul programului.
