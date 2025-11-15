@@ -1,5 +1,15 @@
-package characters.decorators;
+package decorators;
 
-public class SpeedBootsDecorator {
-    
+import characters.ICharacter;
+
+public class SpeedBootsDecorator extends CharacterDecorator {
+
+    public SpeedBootsDecorator(ICharacter decoratedCharacter) {
+        super(decoratedCharacter);
+    }
+
+    @Override
+    public int getSpeed() {
+        return super.getSpeed() * 2;
+    }
 }
