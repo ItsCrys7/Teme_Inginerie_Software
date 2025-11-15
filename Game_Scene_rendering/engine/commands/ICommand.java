@@ -1,5 +1,5 @@
 package engine.commands;
 
-public class ICommand {
-    
+public interface ICommand {
+    void execute();
 }
