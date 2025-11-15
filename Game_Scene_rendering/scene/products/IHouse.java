@@ -1,5 +1,7 @@
 package scene.products;
 
-public class IHouse {
-    
+import core.IGameObject;
+
+public interface IHouse extends IGameObject {
+    String getMaterial();
 }
