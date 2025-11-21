@@ -1,0 +1,7 @@
+Template Method 
+
+- este o metodă care definește scheletul unui algoritm (o rețetă).
+
+- păstrează părțile comune (pașii care nu se schimbă).
+
+- lasă "goluri" (metode abstracte) pentru pașii care diferă, ca să fie completați de clasele copil.
