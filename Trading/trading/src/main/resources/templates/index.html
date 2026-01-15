@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Stock Trading System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Trading Dashboard</h1>
+        <div>
+            <h4>Balance: <span class="badge bg-success" th:text="${#numbers.formatCurrency(user.balance)}">$0.00</span></h4>
+            <form action="/simulate" method="post" style="display:inline;">
+                <button class="btn btn-warning btn-sm">Simulate Market Change</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${!notifications.empty}" class="alert alert-info">
+        <strong>Notifications:</strong>
+        <ul class="mb-0">
+            <li th:each="n : ${notifications}" th:text="${n}"></li>
+        </ul>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">Market Assets</div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead><tr><th>Symbol</th><th>Name</th><th>Price</th><th>Action</th></tr></thead>
+                        <tbody>
+                            <tr th:each="asset : ${assets}">
+                                <td th:text="${asset.symbol}"></td>
+                                <td th:text="${asset.name}"></td>
+                                <td th:text="${#numbers.formatDecimal(asset.currentPrice, 1, 2)}"></td>
+                                <td>
+                                    <form action="/buy" method="post" class="d-flex">
+                                        <input type="hidden" name="assetId" th:value="${asset.id}"/>
+                                        <input type="number" name="quantity" class="form-control form-control-sm me-1" value="1" style="width: 60px;">
+                                        <select name="strategy" class="form-select form-select-sm me-1" style="width: 80px;">
+                                            <option value="LONG">Long</option>
+                                            <option value="DAY">Day</option>
+                                        </select>
+                                        <button class="btn btn-success btn-sm">Buy</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">Your Portfolio</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>Asset</th><th>Qty</th><th>Bought At</th><th>Strategy</th><th>Action</th></tr></thead>
+                        <tbody>
+                            <tr th:each="item : ${portfolio}">
+                                <td th:text="${item.asset.symbol}"></td>
+                                <td th:text="${item.quantity}"></td>
+                                <td th:text="${#numbers.formatDecimal(item.buyPrice, 1, 2)}"></td>
+                                <td th:text="${item.strategyType}"></td>
+                                <td>
+                                    <form action="/sell" method="post">
+                                        <input type="hidden" name="itemId" th:value="${item.id}"/>
+                                        <button class="btn btn-danger btn-sm">Sell</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header">Transaction History</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead><tr><th>Time</th><th>Type</th><th>Symbol</th><th>Qty</th><th>Price</th></tr></thead>
+                <tbody>
+                    <tr th:each="t : ${history}">
+                        <td th:text="${t.timestamp}"></td>
+                        <td th:text="${t.type}" th:class="${t.type == 'BUY'} ? 'text-success' : 'text-danger'"></td>
+                        <td th:text="${t.assetSymbol}"></td>
+                        <td th:text="${t.quantity}"></td>
+                        <td th:text="${t.price}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
