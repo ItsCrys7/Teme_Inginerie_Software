@@ -15,7 +15,7 @@ public class StockStrategy implements TradingStrategy {
         int hour = time.getHour();
         // Luni-Vineri, 9-18
         boolean isWeekday = day != DayOfWeek.SATURDAY && day != DayOfWeek.SUNDAY;
-        boolean isWorkingHours = hour >= 9 && hour < 18;
+        boolean isWorkingHours = hour >= 9 && hour < 22;
         
         return isWeekday && isWorkingHours;
     }

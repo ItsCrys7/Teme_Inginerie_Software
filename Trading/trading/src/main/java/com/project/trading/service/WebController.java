@@ -16,12 +16,11 @@ public class WebController {
     @Autowired private TransactionRepository transRepo;
     @Autowired private com.project.trading.patterns.PriceNotifier notifier;
 
-    // Hardcoded user pentru simplitate
     private Long currentUserId = 1L; 
 
     @GetMapping("/")
     public String dashboard(Model model) {
-        service.initData(); // Asigura date
+        service.initData();
         User user = userRepo.findById(currentUserId).get();
         
         model.addAttribute("user", user);
@@ -33,9 +32,9 @@ public class WebController {
     }
 
     @PostMapping("/buy")
-    public String buy(@RequestParam Long assetId, @RequestParam int quantity, @RequestParam String strategy, Model model) {
-        String result = service.buy(currentUserId, assetId, quantity, strategy);
-        return "redirect:/?msg=" + result;
+    public String buy(@RequestParam Long assetId, @RequestParam int quantity, @RequestParam String strategy) {
+        service.buy(currentUserId, assetId, quantity, strategy);
+        return "redirect:/";
     }
 
     @PostMapping("/sell")
@@ -47,6 +46,20 @@ public class WebController {
     @PostMapping("/simulate")
     public String simulate() {
         service.simulateMarketChange();
+        return "redirect:/";
+    }
+
+    @PostMapping("/setLimits")
+    public String setLimits(@RequestParam Long assetId, 
+                            @RequestParam(required=false) Double buyLimit, 
+                            @RequestParam(required=false) Double sellLimit) {
+        service.setAutoTradeLimits(assetId, buyLimit, sellLimit);
+        return "redirect:/";
+    }
+
+    @PostMapping("/endDay")
+    public String endDay() {
+        service.applyDayTradingCheck();
         return "redirect:/";
     }
 }

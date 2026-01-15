@@ -14,4 +14,8 @@ public abstract class Asset {
     private String symbol;
     private String name;
     private Double currentPrice;
+    
+    // Campuri noi pentru cerinta Auto Buy/Sell
+    private Double autoBuyPrice;
+    private Double autoSellPrice;
 }

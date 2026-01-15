@@ -21,12 +21,12 @@ public class TradingService {
 
     private TradingStrategy stockStrategy = new StockStrategy();
 
-    // Initializare date (Ruleaza la start)
     public void initData() {
         if(assetRepo.count() == 0) {
             assetRepo.save(AssetFactory.createAsset("STOCK", "AAPL", "Apple", 150.0));
             assetRepo.save(AssetFactory.createAsset("STOCK", "TSLA", "Tesla", 200.0));
             assetRepo.save(AssetFactory.createAsset("CRYPTO", "BTC", "Bitcoin", 45000.0));
+            assetRepo.save(AssetFactory.createAsset("CRYPTO", "ETH", "Ethereum", 3000.0));
             
             User u = new User();
             u.setUsername("student");
@@ -41,7 +41,6 @@ public class TradingService {
         User user = userRepo.findById(userId).orElseThrow();
         Asset asset = assetRepo.findById(assetId).orElseThrow();
 
-        // Strategy Check (Time)
         if (asset instanceof Stock && !stockStrategy.canTrade(asset, LocalDateTime.now())) {
             return "Market is closed for Stocks (Open M-F 09-18).";
         }
@@ -57,11 +56,11 @@ public class TradingService {
         item.setQuantity(quantity);
         item.setBuyPrice(asset.getCurrentPrice());
         item.setPurchaseDate(LocalDateTime.now());
-        item.setStrategyType(strategy); // "DAY" or "LONG"
+        item.setStrategyType(strategy); 
         portfolioRepo.save(item);
 
         recordTransaction(user, asset, "BUY", quantity, asset.getCurrentPrice());
-        return "Success";
+        return "Bought " + asset.getSymbol();
     }
 
     @Transactional
@@ -70,23 +69,86 @@ public class TradingService {
         Asset asset = item.getAsset();
         User user = item.getUser();
 
-        // Strategy Check
         if (asset instanceof Stock && !stockStrategy.canTrade(asset, LocalDateTime.now())) {
             return "Market is closed.";
         }
 
         double value = asset.getCurrentPrice() * item.getQuantity();
-        
-        // Day Trading Logic: Penalizare daca a fost cumparat DayTrade dar vandut > 1 zi?
-        // SAU invers: cerinta zice "Once a stock is bought as day trading and is not sold on the same day, it will charge 5%"
-        // Aici verificam la vanzare daca e "same day".
-        // Daca a trecut ziua si a fost marcat DAY_TRADING, consideram ca penalizarea se aplica automat (vezi updatePrices).
-        
         user.setBalance(user.getBalance() + value);
         portfolioRepo.delete(item);
 
         recordTransaction(user, asset, "SELL", item.getQuantity(), asset.getCurrentPrice());
         return "Sold successfully.";
+    }
+
+    // --- LOGICA NOUA PENTRU CERINTE ---
+
+    @Transactional
+    public void setAutoTradeLimits(Long assetId, Double buyLimit, Double sellLimit) {
+        Asset a = assetRepo.findById(assetId).orElseThrow();
+        a.setAutoBuyPrice(buyLimit);
+        a.setAutoSellPrice(sellLimit);
+        assetRepo.save(a);
+    }
+
+    public void simulateMarketChange() {
+        List<Asset> assets = assetRepo.findAll();
+        User user = userRepo.findById(1L).orElse(null);
+        if(user == null) return;
+
+        for (Asset a : assets) {
+            double oldPrice = a.getCurrentPrice();
+            double change = (Math.random() - 0.5) * 5; 
+            double newPrice = oldPrice + change;
+            if (newPrice < 0.1) newPrice = 0.1;
+            
+            a.setCurrentPrice(newPrice);
+            assetRepo.save(a);
+
+            // Auto Buy
+            if (a.getAutoBuyPrice() != null && newPrice < a.getAutoBuyPrice()) {
+                if (user.getBalance() >= newPrice) {
+                    buy(user.getId(), a.getId(), 1, "LONG");
+                }
+            }
+            // Auto Sell
+            if (a.getAutoSellPrice() != null && newPrice > a.getAutoSellPrice()) {
+                List<PortfolioItem> items = user.getPortfolio();
+                for (PortfolioItem item : items) {
+                    if (item.getAsset().getId().equals(a.getId())) {
+                        sell(user.getId(), item.getId());
+                    }
+                }
+            }
+            // Observer Notif
+            if (Math.abs(change) > 1.0) {
+                notifier.notifyUpdate(a.getSymbol(), oldPrice, newPrice);
+            }
+        }
+    }
+
+    @Transactional
+    public String applyDayTradingCheck() {
+        User user = userRepo.findById(1L).orElseThrow();
+        List<PortfolioItem> items = user.getPortfolio();
+        int count = 0;
+
+        for (PortfolioItem item : items) {
+            // Daca e strategie DAY si NU e cumparat azi -> Penalizare 5%
+            if ("DAY".equals(item.getStrategyType()) && 
+                item.getPurchaseDate().toLocalDate().isBefore(java.time.LocalDate.now())) {
+                
+                double currentValue = item.getAsset().getCurrentPrice() * item.getQuantity();
+                double penalty = currentValue * 0.05;
+                
+                user.setBalance(user.getBalance() - penalty);
+                item.setStrategyType("EXPIRED_DAY"); // Ca sa nu taxam la infinit
+                portfolioRepo.save(item);
+                count++;
+            }
+        }
+        userRepo.save(user);
+        return count > 0 ? "Penalties applied to " + count + " items." : "No penalties needed.";
     }
 
     private void recordTransaction(User u, Asset a, String type, int qty, double price) {
@@ -98,23 +160,5 @@ public class TradingService {
         t.setPrice(price);
         t.setTimestamp(LocalDateTime.now());
         transRepo.save(t);
-    }
-
-    // Simulare schimbare pret + Observer
-    public void simulateMarketChange() {
-        List<Asset> assets = assetRepo.findAll();
-        for (Asset a : assets) {
-            double oldPrice = a.getCurrentPrice();
-            double change = (Math.random() - 0.5) * 2; // +/- 1 unit random
-            a.setCurrentPrice(oldPrice + change);
-            assetRepo.save(a);
-            
-            // Observer Trigger
-            if (Math.abs(change) > 0.5) {
-                notifier.notifyUpdate(a.getSymbol(), oldPrice, a.getCurrentPrice());
-            }
-            
-            // Aici s-ar implementa si Auto-Buy/Sell logic (Limit Orders)
-        }
     }
 }
