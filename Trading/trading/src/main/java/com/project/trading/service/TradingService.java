@@ -81,8 +81,6 @@ public class TradingService {
         return "Sold successfully.";
     }
 
-    // --- LOGICA NOUA PENTRU CERINTE ---
-
     @Transactional
     public void setAutoTradeLimits(Long assetId, Double buyLimit, Double sellLimit) {
         Asset a = assetRepo.findById(assetId).orElseThrow();

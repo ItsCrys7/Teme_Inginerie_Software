@@ -11,7 +11,7 @@ public class PriceNotifier {
     public void notifyUpdate(String symbol, double oldPrice, double newPrice) {
         String message = "ALERT: " + symbol + " changed from " + oldPrice + " to " + newPrice;
         notifications.add(message);
-        System.out.println(message); // Simulare notificare
+        System.out.println(message); // notificare
     }
 
     public List<String> getNotifications() {

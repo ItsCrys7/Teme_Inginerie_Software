@@ -6,13 +6,13 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "app_user") // user e cuvant rezervat in SQL
+@Table(name = "app_user") 
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
-    private String password; // In realitate se hashuieste
+    private String password; 
     private Double balance;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
