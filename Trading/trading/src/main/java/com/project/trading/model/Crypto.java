@@ -6,5 +6,5 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("CRYPTO")
 public class Crypto extends Asset {
-    // La fel, poți adăuga câmpuri specifice crypto (ex: blockchainNetwork)
+    // Poți adăuga câmpuri specifice crypto (ex: blockchainNetwork)
 }
