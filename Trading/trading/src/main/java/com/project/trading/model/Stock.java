@@ -6,5 +6,5 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("STOCK")
 public class Stock extends Asset {
-    // Aici poți adăuga câmpuri specifice pentru acțiuni dacă e nevoie (ex: dividendYield)
+    // Aici adăug câmpuri specifice pentru acțiuni dacă e nevoie (ex: dividendYield)
 }

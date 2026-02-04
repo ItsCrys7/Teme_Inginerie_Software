@@ -37,6 +37,9 @@ public class TradingService {
     }
 
     @Transactional
+    // Buy : Verifică banii
+    // Cheamă stockStrategy.canTrade (dacă e închis, dă eroare).
+    // Scade banii, creează PortfolioItem
     public String buy(Long userId, Long assetId, int quantity, String strategy) {
         User user = userRepo.findById(userId).orElseThrow();
         Asset asset = assetRepo.findById(assetId).orElseThrow();
@@ -64,7 +67,8 @@ public class TradingService {
     }
 
     @Transactional
-    public String sell(Long userId, Long portfolioItemId) {
+    // Sell : Vinde, șterge itemul din portofoliu, dă banii înapoi
+    public String sell(Long userId, Long portfolioItemId) { 
         PortfolioItem item = portfolioRepo.findById(portfolioItemId).orElseThrow();
         Asset asset = item.getAsset();
         User user = item.getUser();
@@ -88,7 +92,7 @@ public class TradingService {
         a.setAutoSellPrice(sellLimit);
         assetRepo.save(a);
     }
-
+// Simulează schimbarea pieței, declanșează cumpărări/vânzări automate și notificări
     public void simulateMarketChange() {
         List<Asset> assets = assetRepo.findAll();
         User user = userRepo.findById(1L).orElse(null);
